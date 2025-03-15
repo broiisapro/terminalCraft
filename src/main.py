@@ -21,11 +21,11 @@ class Life(App):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         match event.button.id:
             case "focus_timer":
-                self.notify("Focus Timer selected! (Coming Soon!)")
+                self.notify("Focus Tiemr Selected! (Coming Soon!)")
             case "habit_tracker":
-                self.notify("Habit Tracker selected! (Coming Soon!)")
+                self.notify("Habit Tracker Selected! (Coming Soon!)")
             case "task_manager":
-                self.notify("Task Manager selected! (Coming Soon!)")
+                self.notify("Task Manager Selected! (Coming Soon!)")
             case "quit":
                 self.exit()
 
