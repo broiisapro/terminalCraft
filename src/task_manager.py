@@ -47,14 +47,18 @@ class TaskManagerApp(App):
 
     # tbh i dont really know wat this does it was on a tutorial
     def on_mount(self):
-        self.load_tasks_into_table()
+        # fixing the issue with the column headers showing up multiple times, this is the first time to it is true
+        first = True
+        self.load_tasks_into_table(first)
 
     #loading all the tasks and adding the checkmark and x for if it is completed or not
-    def load_tasks_into_table(self):
+    def load_tasks_into_table(self, first):
         table = self.query_one("#task_table", DataTable)
         table.clear()
-        # the column headers for the tasks. There are issues with this i think but i really could't be bothered to fix them as it does not crash i think. I want to make this the longest comment I have ever written and I think I have done it
-        table.add_columns("#", "Task", "Status", "Due Date")
+        # if it is the first time that it is running then it prints the column headers, if not then it skipps this.
+        if first:
+            # the column headers for the tasks. There are issues with this i think but i really could't be bothered to fix them as it does not crash i think. I want to make this the longest comment I have ever written and I think I have done it
+            table.add_columns("#", "Task", "Status", "Due Date")
         tasks = load_tasks()
         # loop to get the stuff and add them to the table from the "database"
         for i, task in enumerate(tasks, 1):
@@ -76,21 +80,27 @@ class TaskManagerApp(App):
                 save_tasks(tasks)
                 task_input.value = ""
                 due_input.value = ""
-                self.load_tasks_into_table()
+                # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
+                first = False
+                self.load_tasks_into_table(first)
 
         # if the complete button is pressed then mark as complete
         elif event.button.id == "complete_button":
             if table.cursor_row is not None and 0 <= table.cursor_row < len(tasks):
                 tasks[table.cursor_row]["completed"] = True
                 save_tasks(tasks)
-                self.load_tasks_into_table()
+                # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
+                first = False
+                self.load_tasks_into_table(first)
 
         # if the delete button is pressed then delete the task
         elif event.button.id == "delete_button":
             if table.cursor_row is not None and 0 <= table.cursor_row < len(tasks):
                 tasks.pop(table.cursor_row)
                 save_tasks(tasks)
-                self.load_tasks_into_table()
+                # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
+                first = False
+                self.load_tasks_into_table(first)
 
         # if the quit button is pressed then exit
         elif event.button.id == "quit":
