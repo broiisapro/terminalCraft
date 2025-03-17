@@ -1,10 +1,13 @@
 # imports, I honestly dont know what I need and am too scared to remove something
 import json
 import os
-from datetime import datetime
+from datetime import datetime, date
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, DataTable, Button, Input, Static
 from textual.containers import VerticalScroll
+from textual.widgets import Label
+from rich.table import Table
+import calendar
 
 # my version of a database because I dont want to learn a database
 TASKS_FILE = "tasks.json"
@@ -23,6 +26,27 @@ def save_tasks(tasks):
     with open(TASKS_FILE, "w") as file:
         json.dump(tasks, file, indent=4)
 
+# creating a calendar view
+def generate_calendar_view(year, month):
+    cal = calendar.monthcalendar(year, month)
+    table = Table(title=f"{calendar.month_name[month]} {year}")
+    table.add_column("Mon")
+    table.add_column("Tue")
+    table.add_column("Wed")
+    table.add_column("Thu")
+    table.add_column("Fri")
+    table.add_column("Sat")
+    table.add_column("Sun")
+    for week in cal:
+        row = []
+        for day in week:
+            if day == 0:
+                row.append("")
+            else:
+                row.append(str(day))
+        table.add_row(*row)
+    return table
+
 # setting up all the buttons and input fields and tables
 class TaskManagerApp(App):
     def compose(self) -> ComposeResult:
@@ -39,17 +63,27 @@ class TaskManagerApp(App):
         yield Button("Complete Task", id="complete_button")
         # button for deleting a task
         yield Button("Delete Task", id="delete_button")
+        # button for previous month view
+        yield Button("Previous Month", id="prev_month")
+        # button for next month view
+        yield Button("Next Month", id="next_month")
         # button for quitting the app
         yield Button("Quit", id="quit")
         # table for all the tasks
         yield DataTable(id="task_table")
+        # calendar view
+        yield Label("", id="calendar_view")
         yield Footer()
 
     # tbh i dont really know wat this does it was on a tutorial
     def on_mount(self):
+        #setting up calendar
+        self.current_year = datetime.today().year
+        self.current_month = datetime.today().month
         # fixing the issue with the column headers showing up multiple times, this is the first time to it is true
         first = True
         self.load_tasks_into_table(first)
+        self.update_calendar()
 
     #loading all the tasks and adding the checkmark and x for if it is completed or not
     def load_tasks_into_table(self, first):
@@ -65,6 +99,11 @@ class TaskManagerApp(App):
             status = "✔" if task["completed"] else "✘"
             due = task.get("due", "N/A")
             table.add_row(str(i), task["task"], status, due)
+
+    def update_calendar(self):
+        calendar_table = generate_calendar_view(self.current_year, self.current_month)
+        calendar_label = self.query_one("#calendar_view", Label)
+        calendar_label.update(calendar_table)
 
     # checking if the button was pressed
     def on_button_pressed(self, event: Button.Pressed):
@@ -101,6 +140,26 @@ class TaskManagerApp(App):
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
                 self.load_tasks_into_table(first)
+
+        elif event.button.id == "prev_month":
+            # changing the month
+            if self.current_month == 1:
+                self.current_month = 12
+                self.current_year -= 1
+            else:
+                self.current_month -=1
+            # regenerate the calendar view
+            self.update_calendar()
+
+        elif event.button.id == "next_month":
+            # changing the month
+            if self.current_month == 12:
+                self.current_month = 2
+                self.current_year += 1
+            else:
+                self.current_month += 1
+            # regenerate the calendar view
+            self.update_calendar()
 
         # if the quit button is pressed then exit
         elif event.button.id == "quit":
