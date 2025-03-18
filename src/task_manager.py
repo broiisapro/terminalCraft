@@ -27,8 +27,16 @@ def save_tasks(tasks):
         json.dump(tasks, file, indent=4)
 
 # creating a calendar view
-def generate_calendar_view(year, month):
-    cal = calendar.monthcalendar(year, month)
+def generate_calendar_view(year, month, tasks):
+    first_weekday, days_in_month = calendar.monthrange(year, month)
+    prev_month_days = calendar.monthrange(year, month - 1 if month > 1 else 12)[1]
+    task_dict = {}
+    for task in tasks:
+        if task["due"] != "N/A":
+            due_date = datetime.strptime(task["due"], "%Y-%m-%d")
+            if due_date.year == year and due_date.month == month:
+                task_dict.setdefault(due_date.day, []).append(task["completed"])
+
     table = Table(title=f"{calendar.month_name[month]} {year}")
     table.add_column("Mon")
     table.add_column("Tue")
@@ -37,14 +45,34 @@ def generate_calendar_view(year, month):
     table.add_column("Fri")
     table.add_column("Sat")
     table.add_column("Sun")
-    for week in cal:
-        row = []
-        for day in week:
-            if day == 0:
-                row.append("")
+    weeks = []
+    week = []
+
+    for i in range(first_weekday):
+        week.append(f"[dim]{prev_month_days - first_weekday + i + 1}")
+
+    for day in range(1, days_in_month + 1):
+        if day in task_dict:
+            if all(task_dict[day]):
+                week.append(f"[bold green]{day}")
             else:
-                row.append(str(day))
-        table.add_row(*row)
+                week.append(f"[bold red]{day}*")
+        else:
+            week.append(str(day))
+
+        if len(week) == 7:
+            weeks.append(week)
+            week = []
+
+    next_month_day = 1
+    while len(week) < 7:
+        week.append(f"[dim]{next_month_day}")
+        next_month_day += 1
+    weeks.append(week)
+
+    for week in weeks:
+        table.add_row(*week)
+
     return table
 
 # setting up all the buttons and input fields and tables
@@ -101,7 +129,8 @@ class TaskManagerApp(App):
             table.add_row(str(i), task["task"], status, due)
 
     def update_calendar(self):
-        calendar_table = generate_calendar_view(self.current_year, self.current_month)
+        tasks = load_tasks()
+        calendar_table = generate_calendar_view(self.current_year, self.current_month, tasks)
         calendar_label = self.query_one("#calendar_view", Label)
         calendar_label.update(calendar_table)
 
