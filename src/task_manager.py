@@ -2,10 +2,8 @@
 import json
 import os
 from datetime import datetime, date
-from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, DataTable, Button, Input, Static
-from textual.containers import VerticalScroll
-from textual.widgets import Label
+from textual.widgets import DataTable, Button, Input, Static, Label
+from textual.containers import Container
 from rich.table import Table
 import calendar
 
@@ -81,9 +79,13 @@ def generate_calendar_view(year, month, tasks):
 
     return table
 
-class TaskManagerApp(App):
-    def compose(self) -> ComposeResult:
-        yield Header()
+class TaskManagerApp(Container):
+    def __innit(self):
+        super().__init__()
+        self.current_year = datetime.today().year
+        self.current_month = datetime.today().month
+
+    def compose(self):
         # title
         yield Static("Task Manager", classes="title")
         # input field for the task name
@@ -100,26 +102,21 @@ class TaskManagerApp(App):
         yield Button("Previous Month", id="prev_month")
         # button for next month view
         yield Button("Next Month", id="next_month")
-        # button for quitting the app
-        yield Button("Quit", id="quit")
         # table for all the tasks
         yield DataTable(id="task_table")
         # calendar view
         yield Label("", id="calendar_view")
-        yield Footer()
 
     # tbh i dont really know wat this does it was on a tutorial
     def on_mount(self):
-        #setting up calendar
-        self.current_year = datetime.today().year
-        self.current_month = datetime.today().month
-        # fixing the issue with the column headers showing up multiple times, this is the first time to it is true
         first = True
+        self.update_calendar()
         self.load_tasks_into_table(first)
         self.update_calendar()
 
     #loading all the tasks and adding the checkmark and x for if it is completed or not
     def load_tasks_into_table(self, first):
+        self.update_calendar()
         table = self.query_one("#task_table", DataTable)
         table.clear()
         # if it is the first time that it is running then it prints the column headers, if not then it skipps this.
@@ -132,6 +129,7 @@ class TaskManagerApp(App):
             status = "✔" if task["completed"] else "✘"
             due = task.get("due", "N/A")
             table.add_row(str(i), task["task"], status, due)
+        self.update_calendar()
 
     def update_calendar(self):
         tasks = load_tasks()
@@ -154,9 +152,9 @@ class TaskManagerApp(App):
                 due_input.value = ""
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
+                save_tasks(tasks)
                 self.load_tasks_into_table(first)
                 self.update_calendar()
-                save_tasks(tasks)
 
         # if the complete button is pressed then mark as complete
         elif event.button.id == "complete_button":
@@ -164,9 +162,9 @@ class TaskManagerApp(App):
                 tasks[table.cursor_row]["completed"] = True
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
+                save_tasks(tasks)
                 self.load_tasks_into_table(first)
                 self.update_calendar()
-                save_tasks(tasks)
 
         # if the delete button is pressed then delete the task
         elif event.button.id == "delete_button":
@@ -174,9 +172,9 @@ class TaskManagerApp(App):
                 tasks.pop(table.cursor_row)
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
+                save_tasks(tasks)
                 self.load_tasks_into_table(first)
                 self.update_calendar()
-                save_tasks(tasks)
 
         elif event.button.id == "prev_month":
             # changing the month
@@ -197,12 +195,3 @@ class TaskManagerApp(App):
                 self.current_month += 1
             # regenerate the calendar view
             self.update_calendar()
-
-        # if the quit button is pressed then exit
-        elif event.button.id == "quit":
-            self.exit()
-
-# testing purposes because I dont want to integrate into main
-if __name__ == "__main__":
-    app = TaskManagerApp()
-    app.run()

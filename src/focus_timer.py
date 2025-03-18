@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Button, Input, Static
-from textual.containers import VerticalScroll
+from textual.containers import VerticalScroll, Container
 
 # the app
 class TimerApp(App):
@@ -16,15 +16,12 @@ class TimerApp(App):
 
     # buttons and stuff
     def compose(self) -> ComposeResult:
-        yield Header()
         yield Static("Timer App", classes="title")
         yield Input(placeholder="Enter time in minutes", id="time-input")
         yield Static("00:00", id="timer-display")
         yield Button("Start", id="start")
         yield Button("Pause", id="pause")
         yield Button("Reset", id="reset")
-        yield Button("Quit", id="quit")
-        yield Footer()
 
     def format_time(self) -> str:
         minutes, seconds = divmod(self.remaining_time, 60)
@@ -47,10 +44,6 @@ class TimerApp(App):
         # reset if the reset button is pressed
         elif event.button.id == "reset":
             self.reset_timer()
-
-        # quit if the quit button is pressed
-        elif event.button.id == "quit":
-            self.exit()
 
     # start the timer
     def start_timer(self):
