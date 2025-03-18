@@ -10,7 +10,13 @@ from rich.table import Table
 import calendar
 
 # my version of a database because I dont want to learn a database
-TASKS_FILE = "/Users/moksh/Code/terminalCraft/data/tasks.json"
+# Define the path to store habits in the /data folder
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Get terminalCraft directory
+DATA_DIR = os.path.join(BASE_DIR, "data")
+TASKS_FILE = os.path.join(DATA_DIR, "tasks.json")
+
+# Ensure the data directory exists
+os.makedirs(DATA_DIR, exist_ok=True)
 
 # loading all of the tasks from the "database" because I still refuse to learn a database
 def load_tasks():
@@ -75,7 +81,6 @@ def generate_calendar_view(year, month, tasks):
 
     return table
 
-# setting up all the buttons and input fields and tables
 class TaskManagerApp(App):
     def compose(self) -> ComposeResult:
         yield Header()
@@ -145,33 +150,33 @@ class TaskManagerApp(App):
         if event.button.id == "add_button":
             if task_input.value.strip():
                 tasks.append({"task": task_input.value, "completed": False, "added": str(datetime.now()), "due": due_input.value.strip() or "N/A"})
-                save_tasks(tasks)
                 task_input.value = ""
                 due_input.value = ""
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
                 self.load_tasks_into_table(first)
                 self.update_calendar()
+                save_tasks(tasks)
 
         # if the complete button is pressed then mark as complete
         elif event.button.id == "complete_button":
             if table.cursor_row is not None and 0 <= table.cursor_row < len(tasks):
                 tasks[table.cursor_row]["completed"] = True
-                save_tasks(tasks)
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
                 self.load_tasks_into_table(first)
                 self.update_calendar()
+                save_tasks(tasks)
 
         # if the delete button is pressed then delete the task
         elif event.button.id == "delete_button":
             if table.cursor_row is not None and 0 <= table.cursor_row < len(tasks):
                 tasks.pop(table.cursor_row)
-                save_tasks(tasks)
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
                 self.load_tasks_into_table(first)
                 self.update_calendar()
+                save_tasks(tasks)
 
         elif event.button.id == "prev_month":
             # changing the month
