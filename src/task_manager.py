@@ -10,7 +10,7 @@ from rich.table import Table
 import calendar
 
 # my version of a database because I dont want to learn a database
-TASKS_FILE = "tasks.json"
+TASKS_FILE = "/Users/moksh/Code/terminalCraft/data/tasks.json"
 
 # loading all of the tasks from the "database" because I still refuse to learn a database
 def load_tasks():
@@ -151,6 +151,7 @@ class TaskManagerApp(App):
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
                 self.load_tasks_into_table(first)
+                self.update_calendar()
 
         # if the complete button is pressed then mark as complete
         elif event.button.id == "complete_button":
@@ -160,6 +161,7 @@ class TaskManagerApp(App):
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
                 self.load_tasks_into_table(first)
+                self.update_calendar()
 
         # if the delete button is pressed then delete the task
         elif event.button.id == "delete_button":
@@ -169,6 +171,7 @@ class TaskManagerApp(App):
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false
                 first = False
                 self.load_tasks_into_table(first)
+                self.update_calendar()
 
         elif event.button.id == "prev_month":
             # changing the month
