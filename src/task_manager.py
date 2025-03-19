@@ -102,7 +102,7 @@ def generate_calendar_view(year, month, tasks):
 
 # Main Task Manager Application Container
 class TaskManagerApp(Container):
-    def __innit(self):
+    def __init__(self):
         super().__init__()
         self.current_year = datetime.today().year
         self.current_month = datetime.today().month
@@ -160,7 +160,17 @@ class TaskManagerApp(Container):
 
         if event.button.id == "add_button":
             if task_input.value.strip():
-                tasks.append({"task": task_input.value, "completed": False, "added": str(datetime.now()), "due": due_input.value.strip() or "N/A"})
+                due_date = due_input.value.strip()
+                if not validate_date(due_date):
+                    self.notify("Invalid date format! Use YYYY-MM-DD", title="Error")
+                    return
+
+                tasks.append({
+                    "task": task_input.value,
+                    "completed": False,
+                    "added": str(datetime.now()),
+                    "due": due_date or "N/A"
+                })
                 task_input.value = ""
                 due_input.value = ""
                 # fixing the issue with the column headers showing up multiple times, this isnt the first and so it is false

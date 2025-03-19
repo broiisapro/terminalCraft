@@ -9,7 +9,7 @@ from textual.containers import VerticalScroll, Container
 
 # Timer Application
 # Provides a simple interface for setting one timer at a time
-class TimerApp(App):
+class TimerApp(Container):
 
     # Initialize the timer application
     # Sets up default values
